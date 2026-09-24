@@ -1,3 +1,4 @@
+import { eq } from 'drizzle-orm';
 import { describe, it, expect, beforeEach } from 'vitest';
 import { createTestDatabase } from '../../db/test-helpers';
 import { categories, publishers, games } from '../../db/schema';
@@ -5,6 +6,7 @@ import type { Database } from './db';
 import {
     getAllGames,
     getAllGameIds,
+    getFilteredGames,
     getGameById,
 } from './games';
 
@@ -62,5 +64,30 @@ describe('games data-access helpers', () => {
     it('returns null for a non-existent game', async () => {
         await seedGames(db, 2);
         expect(await getGameById(db, 99999)).toBeNull();
+    });
+
+    it('filters games by category', async () => {
+        await seedGames(db, 3);
+        const [category] = await db.select().from(categories).where(eq(categories.name, 'Strategy')).limit(1);
+        const gamesByCategory = await getFilteredGames(db, { categoryIds: [category.id] });
+        expect(gamesByCategory).toHaveLength(3);
+        expect(gamesByCategory.every((game) => game.category?.name === 'Strategy')).toBe(true);
+    });
+
+    it('filters games by publisher and combines category and publisher filters', async () => {
+        await seedGames(db, 3);
+        const [category] = await db.select().from(categories).where(eq(categories.name, 'Strategy')).limit(1);
+        const [publisher] = await db.select().from(publishers).where(eq(publishers.name, 'Pub One')).limit(1);
+
+        const gamesByPublisher = await getFilteredGames(db, { publisherIds: [publisher.id] });
+        expect(gamesByPublisher).toHaveLength(3);
+        expect(gamesByPublisher.every((game) => game.publisher?.name === 'Pub One')).toBe(true);
+
+        const combined = await getFilteredGames(db, {
+            categoryIds: [category.id],
+            publisherIds: [publisher.id],
+        });
+        expect(combined).toHaveLength(3);
+        expect(combined.every((game) => game.category?.name === 'Strategy' && game.publisher?.name === 'Pub One')).toBe(true);
     });
 });
