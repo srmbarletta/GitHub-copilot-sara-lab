@@ -106,6 +106,7 @@ The application lives at the repository root:
 - `src/pages/`: Astro page routes (`index.astro` listing, `game/[id].astro`, `404.astro`, `about.astro`)
 - `src/styles/`: CSS and Tailwind configuration
 - `src/types/`: TypeScript interfaces (Game, Publisher, Category)
+- `.github/extensions/`: shared Copilot canvases, including database exploration and issue triage
 - `e2e-tests/`: Playwright E2E tests (home, games, accessibility)
 - `drizzle.config.ts`, `vitest.config.ts`, `astro.config.mjs`, `playwright.config.ts`: tooling config
 - `README.md`: Project documentation
