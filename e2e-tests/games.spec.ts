@@ -24,6 +24,56 @@ test.describe('Game Listing and Navigation', () => {
     });
   });
 
+  test('should filter the homepage by category and publisher', async ({ page }) => {
+    await test.step('Navigate to the homepage and select filter options', async () => {
+      await page.goto('/');
+      await expect(page.getByTestId('games-grid')).toBeVisible();
+
+      const categoryFilter = page.locator('input[data-filter-type="category"]').first();
+      const publisherFilter = page.locator('input[data-filter-type="publisher"]').first();
+      const categoryId = await categoryFilter.getAttribute('value');
+      const publisherId = await publisherFilter.getAttribute('value');
+
+      await categoryFilter.check();
+      await expect(page.locator(`[data-testid="game-card"][data-category-id="${categoryId}"]`).first()).toBeVisible();
+      await categoryFilter.uncheck();
+
+      await publisherFilter.check();
+      await expect(page.locator(`[data-testid="game-card"][data-publisher-id="${publisherId}"]`).first()).toBeVisible();
+      await publisherFilter.uncheck();
+
+      await categoryFilter.check();
+      await publisherFilter.check();
+      const hasIntersectingCards = await page.evaluate(
+        ({ categoryIdValue, publisherIdValue }) => {
+          const cards = Array.from(document.querySelectorAll('[data-testid="game-card"]'));
+          return cards.some(
+            (card) =>
+              card.getAttribute('data-category-id') === categoryIdValue &&
+              card.getAttribute('data-publisher-id') === publisherIdValue,
+          );
+        },
+        { categoryIdValue: categoryId, publisherIdValue: publisherId },
+      );
+
+      if (hasIntersectingCards) {
+        await expect(
+          page.locator(
+            `[data-testid="game-card"][data-category-id="${categoryId}"][data-publisher-id="${publisherId}"]`,
+          ).first(),
+        ).toBeVisible();
+      } else {
+        await expect(page.getByTestId('filtered-empty-state')).toBeVisible();
+      }
+    });
+
+    await test.step('Clear the filters and confirm the full catalog returns', async () => {
+      await page.getByTestId('clear-filters').click();
+      await expect(page.locator('[data-testid="game-card"]').first()).toBeVisible();
+      await expect(page.getByTestId('visible-games-count')).toContainText(/game(s)? shown/i);
+    });
+  });
+
   test('should navigate to correct game details page when clicking on a game', async ({ page }) => {
     let gameId: string | null;
     let gameTitle: string | null;
