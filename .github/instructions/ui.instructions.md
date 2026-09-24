@@ -50,6 +50,13 @@ Refer to technology-specific instruction files:
 - Keep components focused on a single responsibility
 - Use props for configuration, not duplication
 - Document component APIs with TypeScript types
+- Add a TSDoc comment to every reusable Astro component's `Props` interface. Explain the component's purpose and document non-obvious prop semantics; keep the interface and comment synchronized.
+
+### Comment philosophy
+
+- Comments should explain intent, design decisions, accessibility constraints, or other context that cannot be understood from the code alone.
+- Avoid comments that restate markup, utility classes, or straightforward event handling.
+- Treat outdated comments as bugs and update or remove them with the related UI change.
 
 ## Development Workflow
 

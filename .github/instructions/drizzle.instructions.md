@@ -51,6 +51,9 @@ export async function getAllGameIds(db: Database): Promise<number[]> {
 }
 ```
 
+- Every exported function in `db/` and `src/lib/` must have a TSDoc/JSDoc comment immediately above its declaration. Describe the function's purpose, every parameter (including the injectable `db` argument), and the returned value. Keep the description focused on behavior and intent rather than repeating the signature.
+- Keep comments current with schema, query, and transformation behavior. Update or delete a comment in the same change as the code it describes.
+- Use comments inside data-layer code only for non-obvious decisions, invariants, or external constraints; do not narrate SQL clauses or straightforward transformations.
 - Always `order by` a stable column (title) so static builds are deterministic.
 - Map raw rows to the app-facing `Game`/`Publisher`/`Category` types in one place; don't leak Drizzle row shapes into components.
 - Keep ordering/lookup logic in `games.ts`, not in pages.
@@ -70,3 +73,8 @@ Node.js 22.13 or later is required because the data layer uses the built-in `nod
 ## Type checking
 
 The data layer (`db/**/*.ts`, `src/lib/*.ts`) is type-checked by `npm run typecheck`, which runs the native **TypeScript 7** compiler (`tsgo`, from `@typescript/native-preview`) against `tsconfig.tsgo.json`. Keep helpers exported with explicit parameter and return types so `tsgo` can verify them. Linting is unaffected — ESLint + `typescript-eslint` still run on the classic `typescript` package.
+
+## TypeScript formatting
+
+- Give every function parameter and return value an explicit type; do not rely on inferred public APIs.
+- Use the repository's existing formatting conventions and let ESLint catch machine-checkable violations.
