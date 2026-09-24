@@ -37,14 +37,28 @@ if (!game) {
 
         <div class="flex flex-wrap gap-2 mt-4 mb-6">
           {game.category && (
-            <Tag color="blue" data-testid="game-details-category">
-              {game.category.name}
-            </Tag>
+            <div class="flex flex-col gap-2">
+              <Tag color="blue" data-testid="game-details-category">
+                {game.category.name}
+              </Tag>
+              {game.category.description && (
+                <p class="text-sm text-slate-400" data-testid="game-details-category-description">
+                  {game.category.description}
+                </p>
+              )}
+            </div>
           )}
           {game.publisher && (
-            <Tag color="purple" data-testid="game-details-publisher">
-              {game.publisher.name}
-            </Tag>
+            <div class="flex flex-col gap-2">
+              <Tag color="purple" data-testid="game-details-publisher">
+                {game.publisher.name}
+              </Tag>
+              {game.publisher.description && (
+                <p class="text-sm text-slate-400" data-testid="game-details-publisher-description">
+                  {game.publisher.description}
+                </p>
+              )}
+            </div>
           )}
         </div>
 

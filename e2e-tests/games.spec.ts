@@ -74,6 +74,59 @@ test.describe('Game Listing and Navigation', () => {
     });
   });
 
+  test('should search games by title and show an empty state for no matches', async ({ page }) => {
+    await page.goto('/');
+    const searchInput = page.getByTestId('game-search');
+    const firstCard = page.getByTestId('game-card').first();
+    const firstTitle = await firstCard.getAttribute('data-game-title');
+    expect(firstTitle).not.toBeNull();
+
+    await test.step('Filter the catalog with a case-insensitive title search', async () => {
+      const searchTerm = firstTitle?.slice(0, 4).toLowerCase() ?? '';
+      await searchInput.fill(searchTerm);
+      await expect(page.getByTestId('visible-games-count')).toContainText(/game(s)? shown/i);
+      await expect(page.locator('[data-testid="game-card"]:visible').first()).toHaveAttribute(
+        'data-game-title',
+        new RegExp(searchTerm, 'i'),
+      );
+    });
+
+    await test.step('Show an empty state when no title matches', async () => {
+      await searchInput.fill('no-game-title-matches-this');
+      await expect(page.getByTestId('filtered-empty-state')).toBeVisible();
+      await expect(page.getByTestId('filtered-empty-state')).toContainText('No games match');
+    });
+  });
+
+  test('should sort the catalog by title and star rating', async ({ page }) => {
+    await page.goto('/');
+    const sortSelect = page.getByTestId('game-sort');
+
+    const cardTitles = async (): Promise<string[]> =>
+      page.locator('[data-testid="game-card"]').evaluateAll((cards) =>
+        cards.map((card) => card.getAttribute('data-game-title') ?? ''),
+      );
+
+    await test.step('Sort titles from Z to A', async () => {
+      await sortSelect.selectOption('title-desc');
+      const titles = await cardTitles();
+      expect(titles).toEqual([...titles].sort((left, right) => right.localeCompare(left)));
+    });
+
+    await test.step('Sort by highest star rating first', async () => {
+      await sortSelect.selectOption('rating-desc');
+      const ratings = await page.locator('[data-testid="game-card"]').evaluateAll((cards) =>
+        cards.map((card) => {
+          const value = card.getAttribute('data-star-rating');
+          return value ? Number(value) : null;
+        }),
+      );
+      const rated = ratings.filter((rating): rating is number => rating !== null);
+      expect(rated).toEqual([...rated].sort((left, right) => right - left));
+      expect(ratings.slice(rated.length).every((rating) => rating === null)).toBeTruthy();
+    });
+  });
+
   test('should navigate to correct game details page when clicking on a game', async ({ page }) => {
     let gameId: string | null;
     let gameTitle: string | null;
@@ -133,6 +186,11 @@ test.describe('Game Listing and Navigation', () => {
       if (categoryExists) {
         await expect(page.getByTestId('game-details-category')).not.toBeEmpty();
       }
+    });
+
+    await test.step('Verify category and publisher descriptions are displayed when available', async () => {
+      await expect(page.getByTestId('game-details-category-description')).not.toBeEmpty();
+      await expect(page.getByTestId('game-details-publisher-description')).not.toBeEmpty();
     });
   });
 
